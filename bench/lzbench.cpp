@@ -1005,6 +1005,7 @@ int main( int argc, char** argv)
                 while ((*numPtr >='0') && (*numPtr <='9')) { number *= 10;  number += *numPtr - '0'; numPtr++; }
 		params->memtype_decomp = number;
             }
+	    printf("memtype_orig=%d memtype_comp=%d memtype_decomp=%d\n", params->memtype_orig, params->memtype_comp, params->memtype_decomp);
             break;
         case 'u':
             params->dmintime = 1000*number;
