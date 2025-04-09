@@ -732,6 +732,7 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
     std::vector<size_t> file_sizes;
     FILE* in;
     const char* pch;
+    size_t mem_total_size;
 
     for (int i=0; i<ifnIdx; i++)
     {
@@ -759,7 +760,12 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
         else
             insize = real_insize;
 
-        inbuf = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, false);
+    	mem_total_size = totalsize + PAD_SIZE;
+	if ( params->memtype_orig == 1 ) {
+    		inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
+	} else {
+	        inbuf = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, false);
+    	}
 
         if (!inbuf)
         {
@@ -806,7 +812,11 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
         }
 
         fclose(in);
-        free(inbuf);
+
+    	if ( params->memtype_orig == 1 ) {
+	    meca_free(inbuf, mem_total_size);
+    	} else
+            free(inbuf);
     }
 
     return g_exit_result;
