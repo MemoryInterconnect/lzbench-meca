@@ -760,7 +760,7 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
         else
             insize = real_insize;
 
-    	mem_total_size = totalsize + PAD_SIZE;
+    	mem_total_size = insize + PAD_SIZE;
 	if ( params->memtype_orig == 1 ) {
     		inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
 	} else {
