@@ -1,3 +1,17 @@
+How to compile and execute (for MECA)
+-------------------------
+
+```
+In Qemu RISC-V Virtual Machine booted with Ubuntu
+
+git clone https://github.com/MemoryInterconnect/lzbench-meca.git
+cd lzbench-meca
+make -j$(nproc) BUILD_STATIC=1
+
+ex)
+./lzbench -ezstd corpus/canterbury/cp.html
+```
+
 Introduction
 -------------------------
 
