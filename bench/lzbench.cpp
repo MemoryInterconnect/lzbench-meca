@@ -16,7 +16,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 int istrcmp(const char *str1, const char *str2)
 {
@@ -267,6 +270,49 @@ void *alloc_and_touch(size_t size, bool must_zero) {
     for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
         static_cast<char * volatile>(buf)[i] = zero;
     }
+    return buf;
+}
+
+uint64_t meca_offset = 0x200000000;
+
+void meca_free(void* buf, size_t size) {
+	size = (size+4095)&~(0xFFFULL);
+	munmap(buf, size);
+}
+
+void *meca_alloc_and_touch(size_t size, bool must_zero) {
+    int meca_fid;
+    void *buf = NULL;
+    volatile char zero = 0;
+
+    meca_fid = open("/dev/mem", O_RDWR);
+    if (meca_fid <= 0 ) {
+	    printf("/dev/mem is not opened.\n");
+	    exit(0);
+    }
+
+    printf("before size = %lu\n", size);
+    size = (size+4095)&~(0xFFFULL);
+
+    printf("after size = %lu\n", size);
+
+    buf = mmap(0, size, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
+    if (buf == MAP_FAILED){
+	    printf("mmap /dev/mem has failed. - errno = %d\n", errno);
+	    close(meca_fid);
+	    exit(0);
+    }
+
+    meca_offset += size;
+
+    if (must_zero == 1) {
+	    bzero(buf, size);
+    }
+
+    for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
+        static_cast<char * volatile>(buf)[i] = zero;
+    }
+
     return buf;
 }
 
@@ -565,8 +611,17 @@ void lzbench_process_mem_blocks(lzbench_params_t *params, std::vector<size_t> &f
     }
 
     comprsize = GET_COMPRESS_BOUND(insize) + chunk_sizes.size() * PAD_SIZE;
-    compbuf = (uint8_t*)alloc_and_touch(comprsize, false);
-    decomp = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, true);
+    if ( params->memtype_comp == 1 ) {
+    	compbuf = (uint8_t*)meca_alloc_and_touch(comprsize, false);
+    } else {
+    	compbuf = (uint8_t*)alloc_and_touch(comprsize, false);
+    }
+
+    if ( params->memtype_decomp == 1 ) {
+    	decomp = (uint8_t*)meca_alloc_and_touch(insize + PAD_SIZE, true);
+    } else {
+    	decomp = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, true);
+    }
 
     if (!compbuf || !decomp)
     {
@@ -579,8 +634,15 @@ void lzbench_process_mem_blocks(lzbench_params_t *params, std::vector<size_t> &f
 
     lzbench_process_codec_list(params, chunk_size, chunk_sizes, namesWithParams, inbuf, insize, compbuf, comprsize, decomp, rate);
 
-    free(compbuf);
-    free(decomp);
+    if ( params->memtype_comp == 1 ) {
+	    meca_free(compbuf, comprsize);
+    } else
+	    free(compbuf);
+
+    if ( params->memtype_decomp == 1 ) {
+	    meca_free(decomp, insize + PAD_SIZE);
+    } else 
+	    free(decomp);
 }
 
 
@@ -593,6 +655,7 @@ int lzbench_join(lzbench_params_t* params, const char** inFileNames, unsigned if
     std::string text;
     FILE* in;
     const char* pch;
+    size_t mem_total_size;
 
     totalsize = UTIL_getTotalFileSize(inFileNames, ifnIdx);
     if (totalsize == 0) {
@@ -600,7 +663,12 @@ int lzbench_join(lzbench_params_t* params, const char** inFileNames, unsigned if
         return 1;
     }
 
-    inbuf = (uint8_t*)alloc_and_touch(totalsize + PAD_SIZE, false);
+    mem_total_size = totalsize + PAD_SIZE;
+    if ( params->memtype_orig == 1 ) {
+    	inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
+    } else {
+	inbuf = (uint8_t*)alloc_and_touch(totalsize + PAD_SIZE, false);
+    }
 
     if (!inbuf)
     {
@@ -647,7 +715,10 @@ int lzbench_join(lzbench_params_t* params, const char** inFileNames, unsigned if
     lzbench_process_mem_blocks(params, file_sizes, encoder_list?encoder_list:alias_desc[0].params, inbuf, totalsize, rate);
 
 _clean:
-    free(inbuf);
+    if ( params->memtype_orig == 1 ) {
+	    meca_free(inbuf, mem_total_size);
+    } else
+	free(inbuf);
 
     return g_exit_result;
 }
@@ -766,8 +837,9 @@ void usage(lzbench_params_t* params)
     fprintf(stdout, "  -V    output version information and exit\n");
     fprintf(stdout, "  -x    disable real-time process priority\n");
     fprintf(stdout, "  -z    show (de)compression times instead of speed\n");
+    fprintf(stdout, "  -Mx,x,x What memory is used for Original,Compressed and Decompressed data (ex. -M0,1,1 => Local,Meca,Meca)\n");
     fprintf(stdout, "\nExample usage:\n");
-    fprintf(stdout, "  " PROGNAME " -ezstd filename = selects all levels of zstd\n");
+    fprintf(stdout, "  " PROGNAME " -ezstd -M0,0,0 filename = selects all levels of zstd\n");
     fprintf(stdout, "  " PROGNAME " -ebrotli,2,5/zstd filename = selects levels 2 & 5 of brotli and zstd\n");
     fprintf(stdout, "  " PROGNAME " -t3,5 fname = 3 sec compression and 5 sec decompression loops\n");
     fprintf(stdout, "  " PROGNAME " -t0,0 -i3,5 fname = 3 compression and 5 decompression iterations\n");
@@ -848,6 +920,9 @@ int main( int argc, char** argv)
     params->dmintime = 20*DEFAULT_LOOP_TIME/1000000; // 2 sec
     params->cloop_time = params->dloop_time = DEFAULT_LOOP_TIME;
 
+    params->memtype_orig = 0;
+    params->memtype_comp = 0;
+    params->memtype_decomp = 0;
 
     while ((argc>1) && (argv[1][0]=='-')) {
     char* argument = argv[1]+1;
@@ -914,6 +989,21 @@ int main( int argc, char** argv)
                 while ((*numPtr >='0') && (*numPtr <='9')) { number *= 10;  number += *numPtr - '0'; numPtr++; }
                 params->dmintime = 1000*number;
                 params->dloop_time = (params->dmintime)?DEFAULT_LOOP_TIME:0;
+            }
+            break;
+        case 'M':
+	    params->memtype_orig = number;
+            if (*numPtr == ',')
+            {
+                numPtr++;
+                number = 0;
+                while ((*numPtr >='0') && (*numPtr <='9')) { number *= 10;  number += *numPtr - '0'; numPtr++; }
+		params->memtype_comp = number;
+
+                numPtr++;
+                number = 0;
+                while ((*numPtr >='0') && (*numPtr <='9')) { number *= 10;  number += *numPtr - '0'; numPtr++; }
+		params->memtype_decomp = number;
             }
             break;
         case 'u':
