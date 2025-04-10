@@ -664,7 +664,7 @@ int lzbench_join(lzbench_params_t* params, const char** inFileNames, unsigned if
 
     mem_total_size = totalsize + PAD_SIZE;
     if ( params->memtype_orig == 1 ) {
-    	inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
+    	inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, true);
     } else {
 	inbuf = (uint8_t*)alloc_and_touch(totalsize + PAD_SIZE, false);
     }
@@ -761,7 +761,7 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
 
     	mem_total_size = insize + PAD_SIZE;
 	if ( params->memtype_orig == 1 ) {
-    		inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
+    		inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, true);
 	} else {
 	        inbuf = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, false);
     	}
