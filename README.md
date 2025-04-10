@@ -14,8 +14,12 @@ ex)
 
 ```
 lzbench uses 3 memory buffers for original, compressed and uncompressed data.
+
 -Mx,x,x argument is to specify which memory is used for original, compressed and uncompressed data respectively.
+
+
 ex) -M0,0,0 means all data will be stored in local memory.
+
     -M1,1,0 means original and compressed data is stored in MECA memory, while uncompressed data is stored in local memory.
 
 Introduction
