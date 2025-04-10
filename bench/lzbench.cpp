@@ -274,6 +274,7 @@ void *alloc_and_touch(size_t size, bool must_zero) {
 }
 
 uint64_t meca_offset = 0x200000000;
+int meca_fid = 0;
 
 void meca_free(void* buf, size_t size) {
 	size = (size+4095)&~(0xFFFULL);
@@ -281,11 +282,9 @@ void meca_free(void* buf, size_t size) {
 }
 
 void *meca_alloc_and_touch(size_t size, bool must_zero) {
-    int meca_fid;
     void *buf = NULL;
     volatile char zero = 0;
 
-    meca_fid = open("/dev/mem", O_RDWR);
     if (meca_fid <= 0 ) {
 	    printf("/dev/mem is not opened.\n");
 	    exit(0);
@@ -1101,6 +1100,8 @@ int main( int argc, char** argv)
     }
 #endif
 
+    if ( params->memtype_orig == 1 || params->memtype_comp == 1 || params->memtype_decomp == 1 )
+	    meca_fid = open("/dev/mem", O_RDWR);
     /* Main function */
     if (join)
         result = lzbench_join(params, inFileNames, ifnIdx, encoder_list);
@@ -1147,5 +1148,9 @@ _clean:
     free((void*)inFileNames);
     if (cpu_brand)
         free(cpu_brand);
+
+    if ( meca_fid > 0 )
+	close(meca_fid);
+
     return result;
 }
