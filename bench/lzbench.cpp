@@ -611,7 +611,7 @@ void lzbench_process_mem_blocks(lzbench_params_t *params, std::vector<size_t> &f
 
     comprsize = GET_COMPRESS_BOUND(insize) + chunk_sizes.size() * PAD_SIZE;
     if ( params->memtype_comp == 1 ) {
-    	compbuf = (uint8_t*)meca_alloc_and_touch(comprsize, false);
+    	compbuf = (uint8_t*)meca_alloc_and_touch(comprsize, true);
     } else {
     	compbuf = (uint8_t*)alloc_and_touch(comprsize, false);
     }
