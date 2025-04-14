@@ -274,6 +274,7 @@ void *alloc_and_touch(size_t size, bool must_zero) {
 }
 
 uint64_t meca_offset = 0x200000000;
+//uint64_t meca_offset = 0x0;
 int meca_fid = 0;
 
 void meca_free(void* buf, size_t size) {
@@ -284,6 +285,7 @@ void meca_free(void* buf, size_t size) {
 void *meca_alloc_and_touch(size_t size, bool must_zero) {
     void *buf = NULL;
     volatile char zero = 0;
+    size_t size_page_aligned;
 
     if (meca_fid <= 0 ) {
 	    printf("/dev/mem is not opened.\n");
@@ -291,26 +293,26 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
     }
 
     printf("before size = %lu\n", size);
-    size = (size+4095)&~(0xFFFULL);
+    size_page_aligned = (size+4095)&~(0xFFFULL);
 
-    printf("after size = %lu\n", size);
+    printf("after size = %lu\n", size_page_aligned);
 
-    buf = mmap(0, size, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
+    buf = mmap(0, size_page_aligned, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
     if (buf == MAP_FAILED){
 	    printf("mmap /dev/mem has failed. - errno = %d\n", errno);
 	    close(meca_fid);
 	    exit(0);
     }
 
-    meca_offset += size;
+    meca_offset += size_page_aligned;
 
-//    if (must_zero == 1) {
+    if (must_zero == 1) {
 	    bzero(buf, size);
-//    }
+    }
 
-//    for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
-//        static_cast<char * volatile>(buf)[i] = zero;
-//    }
+    for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
+        static_cast<char * volatile>(buf)[i] = zero;
+    }
 
     return buf;
 }
@@ -611,7 +613,7 @@ void lzbench_process_mem_blocks(lzbench_params_t *params, std::vector<size_t> &f
 
     comprsize = GET_COMPRESS_BOUND(insize) + chunk_sizes.size() * PAD_SIZE;
     if ( params->memtype_comp == 1 ) {
-    	compbuf = (uint8_t*)meca_alloc_and_touch(comprsize, true);
+    	compbuf = (uint8_t*)meca_alloc_and_touch(comprsize, false);
     } else {
     	compbuf = (uint8_t*)alloc_and_touch(comprsize, false);
     }
@@ -664,7 +666,7 @@ int lzbench_join(lzbench_params_t* params, const char** inFileNames, unsigned if
 
     mem_total_size = totalsize + PAD_SIZE;
     if ( params->memtype_orig == 1 ) {
-    	inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, true);
+    	inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
     } else {
 	inbuf = (uint8_t*)alloc_and_touch(totalsize + PAD_SIZE, false);
     }
@@ -761,7 +763,7 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
 
     	mem_total_size = insize + PAD_SIZE;
 	if ( params->memtype_orig == 1 ) {
-    		inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, true);
+    		inbuf = (uint8_t*)meca_alloc_and_touch(mem_total_size, false);
 	} else {
 	        inbuf = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, false);
     	}
@@ -1101,6 +1103,7 @@ int main( int argc, char** argv)
 #endif
 
     if ( params->memtype_orig == 1 || params->memtype_comp == 1 || params->memtype_decomp == 1 )
+//	    meca_fid = open("./mmap.dat", O_RDWR);
 	    meca_fid = open("/dev/mem", O_RDWR);
     /* Main function */
     if (join)
