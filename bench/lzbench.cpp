@@ -465,8 +465,8 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
 
     //swsok, for debug, dump all data to files
     int inbuf_fid, compdat_fid;
-    inbuf_fid = open("inbuf.dat", O_RDWR);
-    compdat_fid = open("comp.dat", O_RDWR);
+    inbuf_fid = open("inbuf.dat", O_CREAT|O_TRUNC|O_RDWR);
+    compdat_fid = open("comp.dat", O_CREAT|O_TRUNC|O_RDWR);
     write(inbuf_fid, inbuf, insize);
     write(compdat_fid, compbuf, complen);
     close(inbuf_fid);
