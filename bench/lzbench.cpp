@@ -304,13 +304,13 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
 
     meca_offset += size;
 
-    if (must_zero == 1) {
+//    if (must_zero == 1) {
 	    bzero(buf, size);
-    }
+//    }
 
-    for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
-        static_cast<char * volatile>(buf)[i] = zero;
-    }
+//    for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
+//        static_cast<char * volatile>(buf)[i] = zero;
+//    }
 
     return buf;
 }
