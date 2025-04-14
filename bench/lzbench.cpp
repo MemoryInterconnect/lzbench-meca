@@ -305,7 +305,8 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
 	    exit(0);
     }
 
-    meca_offset += size_page_aligned;
+//    meca_offset += size_page_aligned;
+    meca_offset += 100*1024*1024;
 
     if (must_zero == 1) {
 	    bzero(buf, size);
