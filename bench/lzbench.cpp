@@ -278,7 +278,7 @@ uint64_t meca_offset = 0x200000000;
 int meca_fid = 0;
 
 void meca_free(void* buf, size_t size) {
-	size = (size+4095)&~(0xFFFULL);
+//	size = (size+4095)&~(0xFFFULL);
 	munmap(buf, size);
 }
 
@@ -297,7 +297,8 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
 
     printf("after size = %lu\n", size_page_aligned);
 
-    buf = mmap(0, size_page_aligned, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
+//    buf = mmap(0, size_page_aligned, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
+    buf = mmap(0, size, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
     if (buf == MAP_FAILED){
 	    printf("mmap /dev/mem has failed. - errno = %d\n", errno);
 	    close(meca_fid);
@@ -464,7 +465,7 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     while (true);
 
     //swsok, for debug, dump all data to files
-    int inbuf_fid, compdat_fid;
+/*    int inbuf_fid, compdat_fid;
     mode_t mode;
     mode = S_IRUSR|S_IWUSR;
 
@@ -474,7 +475,7 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     write(compdat_fid, compbuf, complen);
     close(inbuf_fid);
     close(compdat_fid);
-
+*/
     total_d_iters = 0;
     GetTime(timer_ticks);
     if (!params->compress_only)
