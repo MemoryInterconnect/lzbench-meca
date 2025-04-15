@@ -529,8 +529,8 @@ int ret_memcmp = 0;
         if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0)
         {
 printf("1 ret_memcmp = %d\n", ret_memcmp);
-ret_memcmp = memcmp(inbuf, decomp, insize);
-printf("2 ret_memcmp = %d\n", ret_memcmp);
+ret_memcmp = bcmp(inbuf, decomp, insize);
+printf("2 ret_bcmp = %d\n", ret_memcmp);
 
             decomp_error = true;
 
