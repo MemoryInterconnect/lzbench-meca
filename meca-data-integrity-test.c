@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     // If a byte is different, print the offset and the differing byte values.
     for (size_t i = 0; i < size/sizeof(uint64_t); i++) {
         if (src[i] != mapped[i]) {
-            printf("Difference at offset %zu: src = 0x%016lx, mapped = 0x%016lx\n", i*sizeof(uint64_t), src[i], mapped[i]);
+            printf("Difference at offset 0x%lx: src = 0x%016lx, mapped = 0x%016lx\n", i*sizeof(uint64_t), src[i], mapped[i]);
         }
     }
     
