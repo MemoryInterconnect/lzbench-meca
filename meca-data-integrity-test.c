@@ -62,7 +62,10 @@ int main(int argc, char *argv[]) {
     
     printf("src[0] = 0x%lx\n", *((int64_t*)src));
     // Copy the random data from src to the mmapped region
-    memcpy(mapped, src, size);
+//    memcpy(mapped, src, size);
+    for(size_t i = 0; i < size/sizeof(uint64_t); i++) {
+	    mapped[i] = src[i];
+    }
     
     // Compare the data in the source and the mmapped buffer.
     // If a byte is different, print the offset and the differing byte values.
