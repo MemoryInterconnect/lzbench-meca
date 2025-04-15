@@ -526,6 +526,7 @@ printf("insize=%lu decomplen=%lu\n",insize, decomplen);
 
 printf("memcmp inbuf=0x%lx decomp=0x%lx insize=%lu\n", inbuf, decomp, insize);
 int ret_memcmp = 0;
+sleep(30);
 
         if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0)
         {
