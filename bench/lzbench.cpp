@@ -277,7 +277,6 @@ void *alloc_and_touch(size_t size, bool must_zero) {
 }
 
 uint64_t meca_offset = 0x200000000;
-//uint64_t meca_offset = 0x0;
 int meca_fid = 0;
 
 void meca_free(void* buf, size_t size) {
@@ -298,9 +297,8 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
     printf("before size = %lu\n", size);
     size_page_aligned = (size+4095)&~(0xFFFULL);
 
-    printf("after size = %lu\n", size_page_aligned);
+    printf("after size = %lu offset=0x%lx\n", size_page_aligned, meca_offset);
 
-//    buf = mmap(0, size_page_aligned, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
     buf = mmap(0, size, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
     if (buf == MAP_FAILED){
 	    printf("mmap /dev/mem has failed. - errno = %d\n", errno);
@@ -308,12 +306,11 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
 	    exit(0);
     }
 
-//    meca_offset += size_page_aligned;
-    meca_offset += 100*1024*1024;
+    meca_offset += size_page_aligned;
 
-    if (must_zero == 1) {
+//    if (must_zero == 1) {
 	    bzero(buf, size);
-    }
+//    }
 
     for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
         static_cast<char * volatile>(buf)[i] = zero;
