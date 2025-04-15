@@ -641,6 +641,8 @@ void lzbench_process_mem_blocks(lzbench_params_t *params, std::vector<size_t> &f
     } else {
     	decomp = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, true);
     }
+//swsok
+printf("compbuf=0x%lx decomp=0x%lx\n", compbuf, decomp);
 
     if (!compbuf || !decomp)
     {
@@ -791,6 +793,8 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
             printf("Not enough memory, please use -m option!");
             return 3;
         }
+
+printf("inbuf=0x%lx\n", inbuf);
 
         if (params->random_read){
           unsigned long long pos = 0;
