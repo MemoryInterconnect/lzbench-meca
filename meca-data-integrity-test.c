@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     }*/
 
     for (size_t i = 0; i < size/sizeof(uint64_t); i++) {
-        src[i] = i;
+        src[i] = i*sizeof(uint64_t);
     }
     
     // Open /dev/mem with read/write and synchronous I/O flags
