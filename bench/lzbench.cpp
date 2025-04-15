@@ -260,7 +260,7 @@ size_t common(uint8_t *p1, uint8_t *p2, size_t insize)
 	}
     }
 
-    printf("%d -  %c != %c\n", size, *--p1, *--p2);
+    printf("%d -  0x%hhx != 0x%hhx\n", size, *--p1, *--p2);
 
     return size;
 }
