@@ -249,12 +249,17 @@ void print_stats(lzbench_params_t *params, const compressor_desc_t* desc, int le
 }
 
 
-size_t common(uint8_t *p1, uint8_t *p2)
+size_t common(uint8_t *p1, uint8_t *p2, size_t insize)
 {
     size_t size = 0;
 
-    while (*(p1++) == *(p2++))
+    while (*(p1++) == *(p2++)) {
         size++;
+	if (size >= insize) {
+		size = 0;
+		break;
+	}
+    }
 
     return size;
 }
@@ -518,11 +523,12 @@ printf("insize=%lu decomplen=%lu\n",insize, decomplen);
             LZBENCH_PRINT(0, "ERROR in %s: decompressed size mismatch in_bytes[%ld] != out_bytes[%ld]\n", desc->name, (int64_t)insize, (int64_t)decomplen);
         }
 
+printf("memcmp inbuf=0x%lx decomp=0x%lx insize=%lu\n", inbuf, decomp, insize);
         if (memcmp(inbuf, decomp, insize) != 0)
         {
             decomp_error = true;
 
-            size_t cmn = common(inbuf, decomp);
+            size_t cmn = common(inbuf, decomp, insize);
             LZBENCH_PRINT(0, "ERROR in %s: decompressed bytes common=%ld/%ld\n", desc->name, (int64_t)cmn, (int64_t)insize);
 
             if (params->verbose >= 10)
