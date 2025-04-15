@@ -268,9 +268,11 @@ void *alloc_and_touch(size_t size, bool must_zero) {
 //    void *buf = must_zero ? calloc(1, size) : malloc(size);
     void *buf;
     volatile char zero = 0;
-    
-    buf = aligned_alloc(4096, size);
-    if (must_zero) bzero(buf, size);
+ 
+//swsok, for test
+    size_t size_aligned = (size+4095)&~(0xFFFULL);   
+    buf = aligned_alloc(4096, size_aligned);
+    if (must_zero) bzero(buf, size_aligned);
 
     printf("before size = %lu\n", size);
 
@@ -470,6 +472,7 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     while (true);
 
     //swsok, for debug, dump all data to files
+#if 0
     int inbuf_fid, compdat_fid;
     mode_t mode;
     mode = S_IRUSR|S_IWUSR;
@@ -480,6 +483,7 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     write(compdat_fid, compbuf, complen);
     close(inbuf_fid);
     close(compdat_fid);
+#endif
     ////////////////////////////////////////////
 
 
