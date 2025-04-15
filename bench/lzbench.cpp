@@ -256,10 +256,11 @@ size_t common(uint8_t *p1, uint8_t *p2, size_t insize)
     while (*(p1++) == *(p2++)) {
         size++;
 	if (size >= insize) {
-		size = 0;
-		break;
+		return 0;
 	}
     }
+
+    printf("%d -  %c != %c\n", size, *--p1, *--p2);
 
     return size;
 }
