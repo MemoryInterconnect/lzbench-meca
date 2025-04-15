@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     
     // mmap the memory with the same size as the source buffer.
     // MAP_SHARED allows changes to be visible to other processes and the hardware.
-    uint8_t *mapped = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
+    uint64_t *mapped = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
     if (mapped == MAP_FAILED) {
         perror("mmap");
         close(fd);
@@ -66,9 +66,9 @@ int main(int argc, char *argv[]) {
     
     // Compare the data in the source and the mmapped buffer.
     // If a byte is different, print the offset and the differing byte values.
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size/sizeof(uint64_t); i++) {
         if (src[i] != mapped[i]) {
-            printf("Difference at offset %zu: src = 0x%02x, mapped = 0x%02x\n", i, src[i], mapped[i]);
+            printf("Difference at offset %zu: src = 0x%016lx, mapped = 0x%016lx\n", i, src[i], mapped[i]);
         }
     }
     
