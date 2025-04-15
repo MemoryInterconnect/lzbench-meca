@@ -502,6 +502,8 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
         nanosec = GetDiffTime(rate, loop_ticks, end_ticks);
         dtime.push_back(nanosec/i);
 
+printf("insize=%lu decomplen=%lu\n",insize, decomplen);
+
         if (insize != decomplen)
         {
             decomp_error = true;
