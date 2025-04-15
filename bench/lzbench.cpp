@@ -524,9 +524,14 @@ printf("insize=%lu decomplen=%lu\n",insize, decomplen);
         }
 
 printf("memcmp inbuf=0x%lx decomp=0x%lx insize=%lu\n", inbuf, decomp, insize);
-sleep(1);
-        if (memcmp(inbuf, decomp, insize) != 0)
+int ret_memcmp = 0;
+
+        if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0)
         {
+printf("1 ret_memcmp = %d\n", ret_memcmp);
+ret_memcmp = memcmp(inbuf, decomp, insize);
+printf("2 ret_memcmp = %d\n", ret_memcmp);
+
             decomp_error = true;
 
             size_t cmn = common(inbuf, decomp, insize);
