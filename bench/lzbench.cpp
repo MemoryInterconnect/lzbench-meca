@@ -265,9 +265,13 @@ size_t common(uint8_t *p1, uint8_t *p2)
  * physically allocated and mapped into the process.
  */
 void *alloc_and_touch(size_t size, bool must_zero) {
-    void *buf = must_zero ? calloc(1, size) : malloc(size);
+//    void *buf = must_zero ? calloc(1, size) : malloc(size);
+    void *buf;
     volatile char zero = 0;
     
+    buf = aligned_alloc(4096, size);
+    if (must_zero) bzero(buf, size);
+
     printf("before size = %lu\n", size);
 
     for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
