@@ -466,7 +466,7 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     while (true);
 
     //swsok, for debug, dump all data to files
-/*    int inbuf_fid, compdat_fid;
+    int inbuf_fid, compdat_fid;
     mode_t mode;
     mode = S_IRUSR|S_IWUSR;
 
@@ -476,7 +476,10 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     write(compdat_fid, compbuf, complen);
     close(inbuf_fid);
     close(compdat_fid);
-*/
+    ////////////////////////////////////////////
+
+
+
     total_d_iters = 0;
     GetTime(timer_ticks);
     if (!params->compress_only)
