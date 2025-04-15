@@ -23,16 +23,20 @@ int main(int argc, char *argv[]) {
     }
     
     // Allocate the source buffer
-    uint8_t *src = malloc(size);
+    uint64_t *src = malloc(size);
     if (!src) {
         perror("malloc");
         return EXIT_FAILURE;
     }
     
     // Seed the random number generator and fill the source buffer with random values (0 - 255)
-    srand((unsigned) time(NULL));
+/*    srand((unsigned) time(NULL));
     for (size_t i = 0; i < size; i++) {
         src[i] = rand() % 256;
+    }*/
+
+    for (size_t i = 0; i < size/sizeof(uint64_t); i++) {
+        src[i] = i;
     }
     
     // Open /dev/mem with read/write and synchronous I/O flags
