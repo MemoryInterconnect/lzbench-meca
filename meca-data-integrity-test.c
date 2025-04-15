@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     
+    printf("src[0] = 0x%lx\n", *((int64_t*)src));
     // Copy the random data from src to the mmapped region
     memcpy(mapped, src, size);
     
