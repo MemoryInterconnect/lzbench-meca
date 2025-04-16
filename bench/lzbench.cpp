@@ -21,6 +21,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+//#define MECA_OFFSET 0x200000000
+#define MECA_OFFSET 0x100000000
+
 int istrcmp(const char *str1, const char *str2)
 {
     int c1, c2;
@@ -255,12 +258,11 @@ size_t common(uint8_t *p1, uint8_t *p2, size_t insize)
 
     while (*(p1++) == *(p2++)) {
         size++;
+//swsok,
 	if (size >= insize) {
-		return size;
+		break;
 	}
     }
-
-    printf("%d -  0x%hhx != 0x%hhx\n", size, *--p1, *--p2);
 
     return size;
 }
@@ -271,16 +273,8 @@ size_t common(uint8_t *p1, uint8_t *p2, size_t insize)
  * physically allocated and mapped into the process.
  */
 void *alloc_and_touch(size_t size, bool must_zero) {
-//    void *buf = must_zero ? calloc(1, size) : malloc(size);
-    void *buf;
+    void *buf = must_zero ? calloc(1, size) : malloc(size);
     volatile char zero = 0;
- 
-//swsok, for test
-    size_t size_aligned = (size+4095)&~(0xFFFULL);   
-    buf = aligned_alloc(4096, size_aligned);
-    if (must_zero) bzero(buf, size_aligned);
-
-    printf("before size = %lu\n", size);
 
     for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
         static_cast<char * volatile>(buf)[i] = zero;
@@ -288,7 +282,7 @@ void *alloc_and_touch(size_t size, bool must_zero) {
     return buf;
 }
 
-uint64_t meca_offset = 0x200000000;
+uint64_t meca_offset = MECA_OFFSET;
 int meca_fid = 0;
 
 void meca_free(void* buf, size_t size) {
@@ -320,9 +314,9 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
 
     meca_offset += size_page_aligned;
 
-//    if (must_zero == 1) {
+    if (must_zero == 1) {
 	    bzero(buf, size);
-//    }
+    }
 
     for (size_t i = 0; i < size; i += MIN_PAGE_SIZE) {
         static_cast<char * volatile>(buf)[i] = zero;
@@ -493,7 +487,6 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
     ////////////////////////////////////////////
 
 
-
     total_d_iters = 0;
     GetTime(timer_ticks);
     if (!params->compress_only)
@@ -516,7 +509,7 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
         nanosec = GetDiffTime(rate, loop_ticks, end_ticks);
         dtime.push_back(nanosec/i);
 
-printf("insize=%lu decomplen=%lu\n",insize, decomplen);
+//printf("insize=%lu decomplen=%lu\n",insize, decomplen);
 
         if (insize != decomplen)
         {
@@ -524,15 +517,16 @@ printf("insize=%lu decomplen=%lu\n",insize, decomplen);
             LZBENCH_PRINT(0, "ERROR in %s: decompressed size mismatch in_bytes[%ld] != out_bytes[%ld]\n", desc->name, (int64_t)insize, (int64_t)decomplen);
         }
 
-printf("memcmp inbuf=0x%lx decomp=0x%lx insize=%lu\n", inbuf, decomp, insize);
-int ret_memcmp = 0;
-sleep(30);
+//printf("memcmp inbuf=0x%lx decomp=0x%lx insize=%lu\n", inbuf, decomp, insize);
+//int ret_memcmp = 0;
+//sleep(30);
 
-        if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0)
+//        if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0)
+        if (memcmp(inbuf, decomp, insize) != 0)
         {
-printf("1 ret_memcmp = %d\n", ret_memcmp);
-ret_memcmp = bcmp(inbuf, decomp, insize);
-printf("2 ret_bcmp = %d\n", ret_memcmp);
+//printf("1 ret_memcmp = %d\n", ret_memcmp);
+//ret_memcmp = bcmp(inbuf, decomp, insize);
+//printf("2 ret_bcmp = %d\n", ret_memcmp);
 
             decomp_error = true;
 
@@ -663,8 +657,6 @@ void lzbench_process_mem_blocks(lzbench_params_t *params, std::vector<size_t> &f
     } else {
     	decomp = (uint8_t*)alloc_and_touch(insize + PAD_SIZE, true);
     }
-//swsok
-printf("compbuf=0x%lx decomp=0x%lx\n", compbuf, decomp);
 
     if (!compbuf || !decomp)
     {
@@ -815,8 +807,6 @@ int lzbench_main(lzbench_params_t* params, const char** inFileNames, unsigned if
             printf("Not enough memory, please use -m option!");
             return 3;
         }
-
-printf("inbuf=0x%lx\n", inbuf);
 
         if (params->random_read){
           unsigned long long pos = 0;
@@ -1046,6 +1036,7 @@ int main( int argc, char** argv)
                 params->dloop_time = (params->dmintime)?DEFAULT_LOOP_TIME:0;
             }
             break;
+//To select MECA and local memory for original, compressed and uncompressed data
         case 'M':
 	    params->memtype_orig = number;
             if (*numPtr == ',')
@@ -1147,7 +1138,6 @@ int main( int argc, char** argv)
 #endif
 
     if ( params->memtype_orig == 1 || params->memtype_comp == 1 || params->memtype_decomp == 1 )
-//	    meca_fid = open("./mmap.dat", O_RDWR);
 	    meca_fid = open("/dev/mem", O_RDWR);
     /* Main function */
     if (join)
