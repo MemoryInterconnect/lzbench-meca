@@ -21,8 +21,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-//#define MECA_OFFSET 0x200000000
-#define MECA_OFFSET 0x100000000
+#define MECA_OFFSET 0x200000000
+//#define MECA_OFFSET 0x100000000
 
 int istrcmp(const char *str1, const char *str2)
 {
@@ -520,6 +520,16 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
 //printf("memcmp inbuf=0x%lx decomp=0x%lx insize=%lu\n", inbuf, decomp, insize);
 //int ret_memcmp = 0;
 //sleep(30);
+
+//swsok, for debug, dump all data to file
+
+        for (int i = 0; i < 10; i++) {
+            if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0) {
+                size_t cmn = common(inbuf, decomp, insize);
+                printf("different in  0x%lx inbuf[%ld]=%02x decomp[%ld]=%02x\n", cmn, cmn, inbuf[cmn], cmn, decomp[cmn]);
+            }
+            sleep(1);
+        }
 
 //        if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0)
         if (memcmp(inbuf, decomp, insize) != 0)

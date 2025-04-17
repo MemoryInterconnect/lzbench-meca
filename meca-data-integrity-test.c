@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
 //    memcpy(mapped, src, size);
     for(size_t i = 0; i < size/sizeof(uint64_t); i++) {
 	    mapped[i] = src[i];
+	    mapped[i] = src[i];
     }
     
     // Compare the data in the source and the mmapped buffer.
