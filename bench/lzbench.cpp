@@ -524,9 +524,10 @@ void lzbench_process_single_codec(lzbench_params_t *params, size_t max_chunk_siz
 //swsok, for debug, dump all data to file
 
         for (int i = 0; i < 10; i++) {
+		int ret_memcmp = 0;
             if ((ret_memcmp = memcmp(inbuf, decomp, insize)) != 0) {
                 size_t cmn = common(inbuf, decomp, insize);
-                printf("different in  0x%lx inbuf[%ld]=%02x decomp[%ld]=%02x\n", cmn, cmn, inbuf[cmn], cmn, decomp[cmn]);
+                printf("ret_memcmp = %d  0x%lx inbuf[%ld]=%02x decomp[%ld]=%02x\n", ret_memcmp, cmn, cmn, inbuf[cmn], cmn, decomp[cmn]);
             }
             sleep(1);
         }
