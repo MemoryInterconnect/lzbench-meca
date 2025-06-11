@@ -286,7 +286,9 @@ uint64_t meca_offset = MECA_OFFSET;
 int meca_fid = 0;
 
 void meca_free(void* buf, size_t size) {
-//	size = (size+4095)&~(0xFFFULL);
+    	size_t size_page_aligned;
+	size_page_aligned = (size+4095)&~(0xFFFULL);
+    	printf("%s - addr=0x%lx size=%lu\n", __FUNCTION__, buf, size_page_aligned);
 	munmap(buf, size);
 }
 
@@ -300,10 +302,10 @@ void *meca_alloc_and_touch(size_t size, bool must_zero) {
 	    exit(0);
     }
 
-    printf("before size = %lu\n", size);
+    printf("%s - before size = %lu\n", __FUNCTION__, size);
     size_page_aligned = (size+4095)&~(0xFFFULL);
 
-    printf("after size = %lu offset=0x%lx\n", size_page_aligned, meca_offset);
+    printf("%s - after size = %lu offset=0x%lx\n", __FUNCTION__, size_page_aligned, meca_offset);
 
     buf = mmap(0, size, PROT_READ|PROT_WRITE, MAP_SHARED, meca_fid, meca_offset);
     if (buf == MAP_FAILED){
