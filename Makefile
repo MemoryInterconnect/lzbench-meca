@@ -7,6 +7,9 @@
 # For 32-bit compilation:
 #	make BUILD_ARCH=32-bit
 #
+# For RISC-V 64-bit cross-compilation:
+#	make BUILD_ARCH=riscv64 BUILD_STATIC=1
+#
 # For non-default compiler:
 #	make CC=gcc-14 CXX=g++-14
 #
@@ -33,6 +36,22 @@ ifeq ($(BUILD_ARCH),32-bit)
 	DONT_BUILD_LZSSE ?= 1
 endif
 
+# RISC-V 64-bit cross-compilation support
+ifeq ($(BUILD_ARCH),riscv64)
+	CC := riscv64-linux-gnu-gcc
+	CXX := riscv64-linux-gnu-g++
+	AR := riscv64-linux-gnu-ar
+	STRIP := riscv64-linux-gnu-strip
+	# Disable codecs with architecture-specific optimizations that may not work on RISC-V
+	DONT_BUILD_LZSSE ?= 1
+	DONT_BUILD_NAKAMICHI ?= 1
+	DONT_BUILD_NVCOMP ?= 1
+	# RISC-V architecture flags
+	CODE_FLAGS += -march=rv64gc
+	# Ensure static linking for cross-compiled binary
+	BUILD_STATIC ?= 1
+endif
+
 CC?=gcc
 
 COMPILER = $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
@@ -40,8 +59,12 @@ GCC_VERSION = $(shell echo | $(CC) -dM -E - | grep __VERSION__  | sed -e 's:\#de
 CLANG_VERSION = $(shell $(CC) -v 2>&1 | grep "clang version" | sed -e 's:.*version \([0-9.]*\).*:\1:' -e 's:\.\([0-9][0-9]\):\1:g' -e 's:\.\([0-9]\):0\1:g')
 
 # LZSSE requires compiler with __SSE4_1__ support and 64-bit CPU
+ifeq ($(BUILD_ARCH),riscv64)
+    DONT_BUILD_LZSSE := 1
+else
 ifneq ($(shell echo|$(CC) -dM -E - -march=native|egrep -c '__(SSE4_1|x86_64)__'), 2)
     DONT_BUILD_LZSSE ?= 1
+endif
 endif
 
 # detect Windows
